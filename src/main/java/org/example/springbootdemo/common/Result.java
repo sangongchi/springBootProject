@@ -9,16 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Result<T> {
     private int code;
-    private String message;
+    private String msg;
     private T data;
     private long timestamp=System.currentTimeMillis();
-
-    private PageInfo page;
-
-    @Data
-    public static class PageInfo {
-        private Long total;
-        private Integer limit;
-        private Long page;
-    }
+    private Long total;
+    private Long limit;
+    private Long page;
 }
