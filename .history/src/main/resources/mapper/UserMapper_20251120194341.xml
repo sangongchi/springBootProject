@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sangongchi.projectbyspringboot.dao.UserMapper">
+
+    <select id="selectAgeUsers"
+            resultType="org.sangongchi.projectbyspringboot.model.User">
+        SELECT id, name, password, age
+        FROM user
+        WHERE age = #{age}
+    </select>
+
+</mapper>
