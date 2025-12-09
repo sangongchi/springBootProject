@@ -1,4 +1,3 @@
-HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -18,7 +17,7 @@ target/
 *.iws
 *.iml
 *.ipr
-*.history
+.history
 
 ### NetBeans ###
 /nbproject/private/
@@ -29,6 +28,7 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+/logs
 
 ### VS Code ###
 .vscode/

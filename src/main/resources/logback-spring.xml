@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 引入 Spring Boot 默认的 logback 配置 -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- 定义日志文件存储路径 -->
+    <property name="LOG_HOME" value="logs"/>
+    <property name="APP_NAME" value="ProjectBySpringBoot"/>
+
+    <!-- ==================== 控制台输出 ==================== -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ==================== 应用日志文件输出 ==================== -->
+    <!-- 按日期和大小滚动 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 日志文件路径 -->
+        <file>${LOG_HOME}/${APP_NAME}.log</file>
+        <!-- 滚动策略 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 日志文件命名模式：按日期和索引滚动 -->
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+            <!-- 单个日志文件最大大小 -->
+            <maxFileSize>10MB</maxFileSize>
+            <!-- 日志文件保留天数 -->
+            <maxHistory>30</maxHistory>
+            <!-- 所有日志文件总大小限制 -->
+            <totalSizeCap>1GB</totalSizeCap>
+            <!-- 启动时清理过期日志 -->
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <!-- 日志格式 -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ==================== 操作日志文件输出 ==================== -->
+    <!-- 专门用于记录操作日志，如用户操作、API调用等 -->
+    <appender name="OPERATION_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/operation.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/operation-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <!-- 操作日志格式：包含更多详细信息 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{50}] - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ==================== SQL日志文件输出 ==================== -->
+    <!-- 专门用于记录SQL相关日志 -->
+    <appender name="SQL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/sql.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/sql-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ==================== 错误日志文件输出 ==================== -->
+    <!-- 只记录 ERROR 和 WARN 级别的日志 -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/error.log</file>
+        <!-- 只记录 ERROR 级别 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/error-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ==================== 操作日志 Logger ==================== -->
+    <!-- 使用方式：在代码中使用 LoggerFactory.getLogger("OPERATION") 获取操作日志记录器 -->
+    <logger name="OPERATION" level="INFO" additivity="false">
+        <appender-ref ref="OPERATION_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- ==================== SQL日志 Logger ==================== -->
+    <!-- MyBatis-Plus 和 MyBatis 的 SQL 日志 -->
+    <logger name="com.baomidou.mybatisplus" level="DEBUG" additivity="false">
+        <appender-ref ref="SQL_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    <logger name="org.mybatis" level="DEBUG" additivity="false">
+        <appender-ref ref="SQL_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    <logger name="java.sql" level="DEBUG" additivity="false">
+        <appender-ref ref="SQL_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    <logger name="java.sql.Connection" level="DEBUG"/>
+    <logger name="java.sql.Statement" level="DEBUG"/>
+    <logger name="java.sql.PreparedStatement" level="DEBUG"/>
+    <logger name="java.sql.ResultSet" level="DEBUG"/>
+
+    <!-- ==================== 项目包日志 ==================== -->
+    <logger name="org.sangongchi.projectbyspringboot" level="DEBUG"/>
+
+    <!-- ==================== 根日志配置 ==================== -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
+    </root>
+
+    <!-- ==================== 开发环境配置 ==================== -->
+    <springProfile name="dev">
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ERROR_FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- ==================== 生产环境配置 ==================== -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ERROR_FILE"/>
+        </root>
+        <!-- 生产环境关闭控制台输出 -->
+    </springProfile>
+
+</configuration>
