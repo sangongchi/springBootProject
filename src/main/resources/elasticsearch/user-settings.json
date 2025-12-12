@@ -1,0 +1,17 @@
+{
+  "analysis": {
+    "analyzer": {
+      "default": {
+        "type": "ik_max_word"
+      },
+      "default_search": {
+        "type": "ik_smart"
+      }
+    }
+  },
+  "index": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "refresh_interval": "1s"
+  }
+}
