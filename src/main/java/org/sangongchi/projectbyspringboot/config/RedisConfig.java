@@ -23,7 +23,7 @@ public class RedisConfig {
 		 template.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Object.class));
 
 		 template.afterPropertiesSet();
+		 System.out.println("redisTemplate init");
 		 return template;
-
 	}
 }

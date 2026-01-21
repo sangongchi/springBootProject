@@ -16,7 +16,7 @@ public class HelloController {
 	@GetMapping("/word")
 	@ResponseBody
 	public R<Object> hello(){
-		System.out.println("hello-1--");
-		return R.ok("success hello-world");
+		System.out.println("hello-1--00");
+		return R.ok("success hello-world00");
 	}
 }
