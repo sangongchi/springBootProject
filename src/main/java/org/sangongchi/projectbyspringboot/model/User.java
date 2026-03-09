@@ -11,7 +11,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.springframework.data.elasticsearch.annotations.Document;
+//import org.springframework.data.elasticsearch.annotations.Document;
 
 // MyBatis 默认按 setter 注入属性，Jackson 在返回 JSON 时也依赖 getter。
 // 没有这些方法时，查询结果会映射成字段全是 null 的对象（或序列化成空对象），看起来就像"没返回数据"。
@@ -21,7 +21,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
  *
  * @author ProjectBySpringBoot
  */
-@Document(indexName = "user")
+//@Document(indexName = "user")
 @Schema(description = "用户信息", example = "{\"id\":1,\"name\":\"张三\",\"password\":\"123456\",\"age\":25,\"createTime\":\"2024-01-15 10:30:00\",\"updateTime\":\"2024-01-15 10:30:00\"}")
 @TableName("user")
 @Data

@@ -2,6 +2,7 @@ package org.sangongchi.projectbyspringboot.controller;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.sangongchi.projectbyspringboot.model.User;
 import org.sangongchi.projectbyspringboot.service.UserService;
 import org.sangongchi.projectbyspringboot.utils.R;
@@ -18,6 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  *
  * @author ProjectBySpringBoot
  */
+@Slf4j
 @Tag(name = "用户管理", description = "用户相关的增删改查接口")
 @RestController
 @RequestMapping("/user")
@@ -32,6 +34,7 @@ public class UserController {
 	@GetMapping
 //	@RequestParam(required = false) 用户校验url参数 ?key=value
 	public R<List<User>> getAllUsers() {
+		log.info("获取所有用户");
 		return R.ok(userService.getAllUsers());
 	}
 
@@ -60,6 +63,7 @@ public class UserController {
 	@PostMapping
 	public R<String> addUser(@RequestBody User user) {
 		System.out.println(user);
+		log.info("新增用户");
 		if (userService.addUser(user) > 0) {
 			return R.ok("添加成功");
 		}

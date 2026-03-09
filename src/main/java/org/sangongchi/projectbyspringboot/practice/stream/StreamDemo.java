@@ -16,6 +16,6 @@ public class StreamDemo {
 	}
 	public String getVal(String val) {
 		System.out.println(val.length());
-		return;
+		return val;
 	}
 }

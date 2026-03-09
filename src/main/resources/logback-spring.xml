@@ -1,24 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="ELASTIC" class="net.logstash.logback.appender.HttpAppender">
-        <url>https://localhost:9200/_bulk</url>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-        <connectionStrategy class="net.logstash.logback.appender.HttpConnectionStrategy">
-            <readTimeout>3000</readTimeout>
-            <writeTimeout>3000</writeTimeout>
-        </connectionStrategy>
-        <headers>
-            <header>
-                <name>Authorization</name>
-                <value>Basic ${ELASTIC_BASIC_AUTH}</value>
-            </header>
-            <header>
-                <name>Content-Type</name>
-                <value>application/x-ndjson</value>
-            </header>
-        </headers>
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 发送到 Logstash -->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <!-- Logstash 地址 -->
+        <destination>193.112.112.60:5045</destination>
+
+        <!-- JSON 格式日志 -->
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+
+        <!-- 断线重连 -->
+        <keepAliveDuration>5 minutes</keepAliveDuration>
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="ELASTIC"/>
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOGSTASH"/>
     </root>
+
 </configuration>
