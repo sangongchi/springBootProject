@@ -9,9 +9,11 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,12 +30,16 @@ public class difyController {
 	private WebClient webClient;  // @Autowired 注解用于自动注入 Spring 容器中的 Bean
 
 	@PostMapping(value = "/dify-chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public Flux<String> difyChat(
+	public SseEmitter difyChat(
 			@RequestParam String prompt,
 			@RequestParam(required = false, defaultValue = "") String conversationId,
 			@RequestParam(required = false, defaultValue = "1") String isStreaming) {
 		String difyUrl = "https://api.dify.ai/v1/chat-messages"; // 示例
 		String apiKey = "app-2wNteQaCl6Hm2prKcIVa5S7d";
+
+		SseEmitter emitter = new SseEmitter(0L); // 永不超时
+		ObjectMapper mapper = new ObjectMapper();
+
 
 		Map<String, Object> body = new HashMap<>();
 		body.put("query", prompt);
@@ -41,47 +47,66 @@ public class difyController {
 		body.put("inputs", new HashMap<>()); // 必须是可变 Map
 		body.put("conversation_id", conversationId);
 		body.put("user", "sangongchi");
-		return webClient.post()
-				       .uri(difyUrl)
-				       .header("Authorization", "Bearer " + apiKey)
-				       .header("Accept", "text/event-stream")
-				       .bodyValue(body)
-				       .retrieve() //发送请求并获取响应
-				       .onStatus(HttpStatusCode::isError, resp ->
-						                                          resp.bodyToMono(String.class).flatMap(error -> {
-							                                          System.out.println("Dify Error: " + error);
-							                                          return Mono.error(new RuntimeException(error));
-						                                          })
-				       )
-				       .bodyToFlux(String.class) //将响应体转换为 Flux<String>，表示一个异步的字符串流。
-				       .map(chunk -> {
-					       if (chunk.startsWith("data:")) {
-						       return chunk.substring(5).trim();
-					       }
-					       return chunk;
-				       })
-				       .map(row -> {
-					       try {
-						       // 尝试解析 JSON
-						       JsonNode node = new ObjectMapper().readTree(row);
-						       String event = node.get("event").asText();
-						       String answer = node.get("answer") == null ? "" : node.get("answer").asText();
-						       String conversionId = node.get("conversation_id").asText();
-						       String taskId = node.get("task_id").asText();
+		webClient.post()
+				.uri(difyUrl)
+				.header("Authorization", "Bearer " + apiKey)
+				.header("Accept", "text/event-stream")
+				.bodyValue(body)
+				.retrieve() //发送请求并获取响应
+				.onStatus(HttpStatusCode::isError, resp ->
+						                                   resp.bodyToMono(String.class).flatMap(error -> {
+							                                   System.out.println("Dify Error: " + error);
+							                                   return Mono.error(new RuntimeException(error));
+						                                   })
+				)
+				.bodyToFlux(String.class) //将响应体转换为 Flux<String>，表示一个异步的字符串流。
+				.map(chunk -> {
+					if (chunk.startsWith("data:")) {
+						return chunk.substring(5).trim();
+					}
+					return chunk;
+				})
+				.subscribe(row -> {
+							try {
+								// 尝试解析 JSON
+								JsonNode node = mapper.readTree(row);
+								String event = node.get("event").asText();
+								String answer = node.get("answer") == null ? "" : node.get("answer").asText();
+								String conversionId = node.get("conversation_id").asText();
+								String taskId = node.get("task_id").asText();
 
-						       ObjectNode out = new ObjectMapper().createObjectNode();
-						       out.put("type", event)
-								       .put("answer", answer)
-								       .put("conversionId", conversionId)
-								       .put("taskId", taskId);
-						       return out.toString();
+								ObjectNode out = mapper.createObjectNode();
+								out.put("type", event)
+										.put("answer", answer)
+										.put("conversionId", conversionId)
+										.put("taskId", taskId);
+								emitter.send(
+										SseEmitter.event()
+												.data(out.toString())
+												.id(String.valueOf(System.currentTimeMillis()))
+								);
 
-					       } catch (Exception e) {
-						       System.out.println("Dify Error: " + e.getMessage());
-						       return "{\"type\":\"error\",\"answer\":\"\"}";
-					       }
-				       });
+							} catch (Exception e) {
+								System.out.println("Dify Error: " + e.getMessage());
+								try {
+									emitter.send(SseEmitter.event()
+											             .data("{\"type\":\"error\",\"msg\":\"json_parse_error\"}"));
+								} catch (IOException ex) {
+									throw new RuntimeException(ex);
+								}
 
+							}
+						}, error -> {
+							try {
+								emitter.send(SseEmitter.event()
+										             .data("{\"type\":\"error\",\"msg\":\"" + error.getMessage() + "\"}"));
+							} catch (IOException ignored) {
+							}
+							emitter.complete();
+						},
+						emitter::complete
+				);
+		return emitter;
 	}
 
 	@PostMapping(value = "/dify-workflow", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
