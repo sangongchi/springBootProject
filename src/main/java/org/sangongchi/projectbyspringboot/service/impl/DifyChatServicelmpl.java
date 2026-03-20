@@ -1,16 +1,16 @@
-package org.sangongchi.projectbyspringboot.controller;
+package org.sangongchi.projectbyspringboot.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.Data;
+import org.sangongchi.projectbyspringboot.service.DifyChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -19,21 +19,16 @@ import java.util.Map;
 
 /**
  * @author yangpei
- * @date 2026/3/17
+ * @date 2026/3/18
  */
-@RestController
-
-public class difyController {
-
-
+@Service
+public class DifyChatServicelmpl implements DifyChatService {
 	@Autowired
-	private WebClient webClient;  // @Autowired 注解用于自动注入 Spring 容器中的 Bean
+	private WebClient webClient;
 
-	@PostMapping(value = "/dify-chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter difyChat(
-			@RequestParam String prompt,
-			@RequestParam(required = false, defaultValue = "") String conversationId,
-			@RequestParam(required = false, defaultValue = "1") String isStreaming) {
+	//	@PostMapping(value = "/dify-chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	@Override
+	public SseEmitter chat(String prompt, String conversationId, String isStreaming) {
 		String difyUrl = "https://api.dify.ai/v1/chat-messages"; // 示例
 		String apiKey = "app-2wNteQaCl6Hm2prKcIVa5S7d";
 
@@ -107,78 +102,6 @@ public class difyController {
 						emitter::complete
 				);
 		return emitter;
-	}
-
-	@PostMapping(value = "/dify-workflow", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public Flux<String> difyWorkFlow(
-			@RequestBody ReBody reBody,
-			@RequestParam(required = false, defaultValue = "1") String isStreaming) {
-		System.out.println(reBody);
-		String difyUrl = "https://api.dify.ai/v1/workflows/run";
-		String apiKey = "app-IQ9C47wyke2DP4MPomDVvC9d";
-
-
-		Map<String, Object> body = new HashMap<>();
-		body.put("response_mode", isStreaming.equals("1") ? "streaming" : "blocking");
-		body.put("inputs", reBody);
-		body.put("user", "sangongchi");
-
-		ObjectMapper mapper = new ObjectMapper();
-		return webClient.post()
-				       .uri(difyUrl)
-				       .header("Authorization", "Bearer " + apiKey)
-				       .header("Accept", "text/event-stream")
-				       .bodyValue(body)
-				       .retrieve()
-				       .onStatus(HttpStatusCode::isError, resp ->
-						                                          resp.bodyToMono(String.class).flatMap(error -> {
-							                                          System.out.println("Dify Error: " + error);
-							                                          return Mono.error(new RuntimeException(error));
-						                                          })
-				       )
-				       .bodyToFlux(String.class)
-				       // 替换data:开头
-				       .map(raw -> raw.startsWith("data:") ? raw.substring(5).trim() : raw)
-				       .map(row -> {
-					       try {
-						       JsonNode node = mapper.readTree(row);
-						       ObjectNode out = new ObjectMapper().createObjectNode();
-						       if (node.path("event").isMissingNode()) {
-							       out.put("event", "");
-							       out.put("content", row);
-							       out.put("workFlowRunId", "");
-							       out.put("taskId", "");
-						       }
-						       String event = node.path("event").asText();
-						       String workFlowRunId = node.path("workflow_run_id").asText();
-						       String taskId = node.path("task_id").asText();
-						       JsonNode content = node.path("data");
-						       out.put("event", event)
-								       .put("workFlowRunId", workFlowRunId)
-								       .put("taskId", taskId);
-						       out.set("content", content);
-						       return out.toString();
-					       } catch (Exception e) {
-						       System.out.println("Dify Error: " + e.getMessage());
-						       return "{\"type\":\"error\",\"content\":\"\"}";
-					       }
-				       });
-
-
-	}
-
-	@Data
-	public static class ReBody {
-		private String text;
-		private Img img;
-
-		@Data
-		public static class Img {
-			private String type;
-			private String transfer_method;
-			private String url;
-			private String upload_file_id;
-		}
 	}
 
 

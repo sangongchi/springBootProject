@@ -15,7 +15,7 @@ import java.time.Duration;
  * @date 2026/3/17
  */
 @Configuration
-public class webClientConfig {
+public class WebClientConfig {
 	@Bean
 	public WebClient webClient() {
 		return WebClient.builder()
