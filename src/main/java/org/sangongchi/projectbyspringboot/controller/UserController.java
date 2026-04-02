@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.sangongchi.projectbyspringboot.model.User;
 import org.sangongchi.projectbyspringboot.service.UserService;
+import org.sangongchi.projectbyspringboot.utils.LogUtils;
 import org.sangongchi.projectbyspringboot.utils.R;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +35,8 @@ public class UserController {
 	@GetMapping
 //	@RequestParam(required = false) 用户校验url参数 ?key=value
 	public R<List<User>> getAllUsers() {
-		log.info("获取所有用户");
+		LogUtils.operation("获取所有用户");
+		LogUtils.sql("测试sqlMarker");
 		return R.ok(userService.getAllUsers());
 	}
 

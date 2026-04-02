@@ -17,7 +17,6 @@ public class TimeFormatter {
 	}
 	public static String format(Object source,String format){
 		LocalDateTime dateTime = convertToLocalDateTime(source);
-		System.out.println("格式时间"+dateTime);
 		DateTimeFormatter customFormatter = DateTimeFormatter.ofPattern(format);
 		return customFormatter.format(dateTime);
 	}

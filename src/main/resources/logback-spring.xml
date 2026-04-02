@@ -1,28 +1,213 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- 定义常量 -->
+<!--    # 控制台日志格式-->
+<!--    # %d{日期时间} %5p [%t] %-40.40logger{39} : %m%n-->
+<!--    # %d: 日期时间-->
+<!--    # %5p: 日志级别（右对齐，5个字符宽度）-->
+<!--    # %t: 线程名-->
+<!--    # %logger: 日志记录器名称-->
+<!--    # %m: 日志消息-->
+<!--    # %n: 换行符-->
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"/>
+    <property name="CONSOLE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%thread] %boldMagenta(%logger{50}) - %msg%n"/>
 
     <!-- 控制台输出 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{50} - %msg%n</pattern>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <!-- 发送到 Logstash -->
+    <!-- 应用日志文件 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/ProjectBySpringBoot.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/ProjectBySpringBoot-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 操作日志文件 -->
+    <appender name="OPERATION_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/operation.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/operation-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- SQL 日志文件 -->
+    <appender name="SQL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/sql.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/sql-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 错误日志文件 -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/error.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/error-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 发送到 Logstash（生产环境使用） -->
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <!-- Logstash 地址 -->
         <destination>193.112.112.60:5045</destination>
-
-        <!-- JSON 格式日志 -->
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-
-        <!-- 断线重连 -->
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
         <keepAliveDuration>5 minutes</keepAliveDuration>
     </appender>
 
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="LOGSTASH"/>
-    </root>
+    <!-- 异步日志（提高性能） -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+
+    <appender name="ASYNC_OPERATION" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="OPERATION_FILE"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+
+    <appender name="ASYNC_SQL" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SQL_FILE"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+
+    <appender name="ASYNC_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ERROR_FILE"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+
+    <!-- 开发环境配置 -->
+    <springProfile name="dev">
+        <!-- 根日志记录器 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ERROR_FILE"/>
+            <appender-ref ref="LOGSTASH"/>
+        </root>
+
+        <!-- 操作日志记录器 -->
+        <logger name="OPERATION" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="OPERATION_FILE"/>
+            <appender-ref ref="LOGSTASH"/>
+        </logger>
+
+        <!-- SQL 日志记录器 -->
+        <logger name="SQL" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="SQL_FILE"/>
+            <appender-ref ref="LOGSTASH"/>
+        </logger>
+
+        <!-- MyBatis-Plus SQL 日志 -->
+        <logger name="com.baomidou.mybatisplus" level="DEBUG"/>
+        <logger name="org.mybatis" level="DEBUG"/>
+        <logger name="java.sql" level="DEBUG"/>
+
+        <!-- Spring 框架日志 -->
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.sangongchi.projectbyspringboot" level="DEBUG"/>
+    </springProfile>
+
+    <!-- 测试环境配置 -->
+    <springProfile name="test">
+        <!-- 根日志记录器 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ERROR_FILE"/>
+        </root>
+
+        <!-- 操作日志记录器 -->
+        <logger name="OPERATION" level="INFO" additivity="false">
+            <appender-ref ref="OPERATION_FILE"/>
+        </logger>
+
+        <!-- SQL 日志记录器 -->
+        <logger name="SQL" level="INFO" additivity="false">
+            <appender-ref ref="SQL_FILE"/>
+        </logger>
+
+        <!-- MyBatis-Plus SQL 日志（INFO 级别） -->
+        <logger name="com.baomidou.mybatisplus" level="INFO"/>
+        <logger name="org.mybatis" level="INFO"/>
+        <logger name="java.sql" level="INFO"/>
+
+        <!-- Spring 框架日志 -->
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.sangongchi.projectbyspringboot" level="INFO"/>
+    </springProfile>
+
+    <!-- 生产环境配置 -->
+    <springProfile name="prod">
+        <!-- 根日志记录器 -->
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_ERROR"/>
+            <appender-ref ref="LOGSTASH"/>
+        </root>
+
+        <!-- 操作日志记录器 -->
+        <logger name="OPERATION" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_OPERATION"/>
+            <appender-ref ref="LOGSTASH"/>
+        </logger>
+
+        <!-- SQL 日志记录器（生产环境通常关闭） -->
+        <logger name="SQL" level="WARN" additivity="false">
+            <appender-ref ref="ASYNC_SQL"/>
+        </logger>
+
+        <!-- MyBatis-Plus SQL 日志（生产环境关闭） -->
+        <logger name="com.baomidou.mybatisplus" level="WARN"/>
+        <logger name="org.mybatis" level="WARN"/>
+        <logger name="java.sql" level="WARN"/>
+
+        <!-- Spring 框架日志 -->
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.sangongchi.projectbyspringboot" level="INFO"/>
+    </springProfile>
 
 </configuration>
