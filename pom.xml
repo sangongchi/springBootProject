@@ -171,6 +171,13 @@
             <artifactId>spring-boot-admin-starter-client</artifactId>
             <version>3.1.8</version>
         </dependency>
+
+<!--		srpingAi相关依赖-->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+			<version>1.0.0-M6</version>
+		</dependency>
     </dependencies>
 
     <build>

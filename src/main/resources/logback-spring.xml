@@ -87,7 +87,23 @@
     <!-- 发送到 Logstash（生产环境使用） -->
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
         <destination>193.112.112.60:5045</destination>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeCallerData>false</includeCallerData>
+            <fieldNames>
+                <timestamp>@timestamp</timestamp>
+                <message>message</message>
+                <level>level</level>
+                <logger>logger_name</logger>
+                <thread>thread_name</thread>
+                <stackTrace>stack_trace</stackTrace>
+                <version>version</version>
+            </fieldNames>
+            <customFields>{"tags":["from_springboot"]}</customFields>
+            <includeMdc>false</includeMdc>
+            <includeContext>false</includeContext>
+            <includeCallerInfo>false</includeCallerInfo>
+            <includeLevelName>true</includeLevelName>
+        </encoder>
         <keepAliveDuration>5 minutes</keepAliveDuration>
     </appender>
 
@@ -141,13 +157,32 @@
         </logger>
 
         <!-- MyBatis-Plus SQL 日志 -->
-        <logger name="com.baomidou.mybatisplus" level="DEBUG"/>
-        <logger name="org.mybatis" level="DEBUG"/>
-        <logger name="java.sql" level="DEBUG"/>
+        <logger name="com.baomidou.mybatisplus" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="SQL_FILE"/>
+            <appender-ref ref="LOGSTASH"/>
+        </logger>
+        <logger name="org.mybatis" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="SQL_FILE"/>
+            <appender-ref ref="LOGSTASH"/>
+        </logger>
+        <logger name="java.sql" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="SQL_FILE"/>
+            <appender-ref ref="LOGSTASH"/>
+        </logger>
+        <!-- 用户Mapper接口日志 -->
+        <logger name="org.sangongchi.projectbyspringboot.dao" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="SQL_FILE"/>
+            <appender-ref ref="LOGSTASH"/>
+        </logger>
 
         <!-- Spring 框架日志 -->
         <logger name="org.springframework" level="INFO"/>
         <logger name="org.sangongchi.projectbyspringboot" level="DEBUG"/>
+		<logger name="org.springframework.web.reactive.function.client" level="DEBUG"/>
     </springProfile>
 
     <!-- 测试环境配置 -->
@@ -170,9 +205,19 @@
         </logger>
 
         <!-- MyBatis-Plus SQL 日志（INFO 级别） -->
-        <logger name="com.baomidou.mybatisplus" level="INFO"/>
-        <logger name="org.mybatis" level="INFO"/>
-        <logger name="java.sql" level="INFO"/>
+        <logger name="com.baomidou.mybatisplus" level="INFO" additivity="false">
+            <appender-ref ref="SQL_FILE"/>
+        </logger>
+        <logger name="org.mybatis" level="INFO" additivity="false">
+            <appender-ref ref="SQL_FILE"/>
+        </logger>
+        <logger name="java.sql" level="INFO" additivity="false">
+            <appender-ref ref="SQL_FILE"/>
+        </logger>
+        <!-- 用户Mapper接口日志 -->
+        <logger name="org.sangongchi.projectbyspringboot.dao" level="INFO" additivity="false">
+            <appender-ref ref="SQL_FILE"/>
+        </logger>
 
         <!-- Spring 框架日志 -->
         <logger name="org.springframework" level="INFO"/>
@@ -201,9 +246,19 @@
         </logger>
 
         <!-- MyBatis-Plus SQL 日志（生产环境关闭） -->
-        <logger name="com.baomidou.mybatisplus" level="WARN"/>
-        <logger name="org.mybatis" level="WARN"/>
-        <logger name="java.sql" level="WARN"/>
+        <logger name="com.baomidou.mybatisplus" level="WARN" additivity="false">
+            <appender-ref ref="ASYNC_SQL"/>
+        </logger>
+        <logger name="org.mybatis" level="WARN" additivity="false">
+            <appender-ref ref="ASYNC_SQL"/>
+        </logger>
+        <logger name="java.sql" level="WARN" additivity="false">
+            <appender-ref ref="ASYNC_SQL"/>
+        </logger>
+        <!-- 用户Mapper接口日志 -->
+        <logger name="org.sangongchi.projectbyspringboot.dao" level="WARN" additivity="false">
+            <appender-ref ref="ASYNC_SQL"/>
+        </logger>
 
         <!-- Spring 框架日志 -->
         <logger name="org.springframework" level="WARN"/>
