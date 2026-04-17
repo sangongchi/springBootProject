@@ -182,7 +182,8 @@
         <!-- Spring 框架日志 -->
         <logger name="org.springframework" level="INFO"/>
         <logger name="org.sangongchi.projectbyspringboot" level="DEBUG"/>
-		<logger name="org.springframework.web.reactive.function.client" level="DEBUG"/>
+        <!-- 禁用 Actuator 健康检查日志 -->
+        <logger name="org.springframework.web.reactive.function.client" level="WARN"/>
     </springProfile>
 
     <!-- 测试环境配置 -->

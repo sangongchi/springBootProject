@@ -1,10 +1,11 @@
-package org.sangongchi.projectbyspringboot.controller;
+package org.sangongchi.projectbyspringboot.controller.springAi;
 
 
 import org.sangongchi.projectbyspringboot.utils.LogUtils;
 
-import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
@@ -17,23 +18,23 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 
 /**
- * @author yangpei
- * @date 2026/4/8
- */
+* @author yangpei
+* @date 2026/4/8
+*/
 @RestController
 @RequestMapping("/deepseek")
 public class DeepSeekController {
-	private final OpenAiChatModel chatModel;
+	private final ChatModel chatModel;
 	private final Environment environment;
-	private final OpenAiEmbeddingModel embeddingModel;
+//	private final EmbeddingModel embeddingModel;
 
 	@Value("${spring.ai.openai.base-url}")
 	private String baseUrl;
 
-	public DeepSeekController(OpenAiChatModel chatModel, Environment environment, OpenAiEmbeddingModel embeddingModel) {
+	public DeepSeekController(ChatModel chatModel, Environment environment) {
 		this.chatModel = chatModel;
 		this.environment = environment;
-		this.embeddingModel = embeddingModel;
+//		this.embeddingModel = embeddingModel;
 	}
 
 	@GetMapping("/chat")
@@ -63,23 +64,23 @@ public class DeepSeekController {
 		return chatModel.stream(prompt);
 	}
 
-	@GetMapping("/embed")
-	public List<Double> embed(@RequestParam String text) {
-		try {
-			LogUtils.info("Embedding text: {}", text);
-			// 调用嵌入模型获取响应
-			float[] embedding = embeddingModel.embed(text);
-			// 转换float[]为List<Double>
-			List<Double> embeddings = new java.util.ArrayList<>();
-			for (float value : embedding) {
-				embeddings.add((double) value);
-			}
-			LogUtils.info("Embedding result size: {}", embeddings.size());
-			return embeddings;
-		} catch (Exception e) {
-			LogUtils.error("Error in embedding: {}", e.getMessage());
-			e.printStackTrace();
-			return List.of();
-		}
-	}
+//	@GetMapping("/embed")
+//	public List<Double> embed(@RequestParam String text) {
+//		try {
+//			LogUtils.info("Embedding text: {}", text);
+//			// 调用嵌入模型获取响应
+//			float[] embedding = embeddingModel.embed(text);
+//			// 转换float[]为List<Double>
+//			List<Double> embeddings = new java.util.ArrayList<>();
+//			for (float value : embedding) {
+//				embeddings.add((double) value);
+//			}
+//			LogUtils.info("Embedding result size: {}", embeddings.size());
+//			return embeddings;
+//		} catch (Exception e) {
+//			LogUtils.error("Error in embedding: {}", e.getMessage());
+//			e.printStackTrace();
+//			return List.of();
+//		}
+//	}
 }
